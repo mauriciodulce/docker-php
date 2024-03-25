@@ -2,10 +2,13 @@ name: Docker Publish (Beta Images)
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
   release:
-    types: [prereleased]
+    types: [released]
   schedule:
-    - cron: '25 8 * * 1'
+    - cron: '0 8 * * 2'
 
 jobs:
   build-beta-images:
