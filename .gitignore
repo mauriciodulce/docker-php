@@ -1,0 +1,7 @@
+# Ensure node files do not appear
+package-lock.json
+package.json
+yarn.lock
+node_modules
+php-versions.yml
+*.tmp
