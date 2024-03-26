@@ -11,7 +11,7 @@ jobs:
   build-beta-images:
     uses: ./.github/workflows/service_docker-build-and-publish.yml
     with:
-      registry-repositories: "docker.io/mauriciodulce/php,ghcr.io/mauriciodulce/php"
+      registry-repositories: "docker.io/mauriciodulce/php"
       tag-prefix: "beta-"
       release-type: "testing"
     secrets: inherit
