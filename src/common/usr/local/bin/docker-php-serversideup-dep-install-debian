@@ -37,8 +37,7 @@ convert_comma_delimited_to_space_separated() {
 ############
 DEP_PACKAGES=$(convert_comma_delimited_to_space_separated "$@")
 echo "🤖 Installing: $DEP_PACKAGES"
-apt-get update -y
-apt-get upgrade -y
+apt-get update
 apt-get install -y $DEP_PACKAGES
 
 
