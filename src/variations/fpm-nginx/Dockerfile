@@ -74,7 +74,7 @@ ENV APP_BASE_DIR=/var/www/html \
     DISABLE_DEFAULT_CONFIG=false \
     LOG_OUTPUT_LEVEL=warn \
     NGINX_SERVER_TOKENS=off \
-    NGINX_USER=nginx \
+    NGINX_WEBROOT=/var/www/html/public \
     PHP_DATE_TIMEZONE="UTC" \
     PHP_DISPLAY_ERRORS=Off \
     PHP_DISPLAY_STARTUP_ERRORS=Off \
@@ -106,9 +106,6 @@ ENV APP_BASE_DIR=/var/www/html \
     SSL_CERTIFICATE_FILE=/etc/ssl/private/self-signed-web.crt \
     SSL_PRIVATE_KEY_FILE=/etc/ssl/private/self-signed-web.key
 
-# Use second ENV layer for variable substitution
-ENV NGINX_WEBROOT=${APP_BASE_DIR}/public
-
 # copy our scripts
 COPY --chmod=755 src/common/ /
 COPY --chmod=755 src/s6/ /
@@ -129,6 +126,10 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" &
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     docker-php-serversideup-install-php-ext-installer && \
     docker-php-serversideup-s6-init && \
+    \
+    # Ensure /var/www/ has the correct permissions
+    chown -R www-data:www-data /var/www && \
+    chmod -R 755 /var/www && \
     \
     # Make composer cache directory
     mkdir -p "${COMPOSER_HOME}" && \
@@ -160,7 +161,11 @@ COPY --chmod=755 src/php-fpm.d/ /
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-EXPOSE 80 443
+RUN docker-php-serversideup-set-file-permissions --owner www-data:www-data --service nginx
+
+USER www-data
+
+EXPOSE 8080 8443
 
 WORKDIR ${APP_BASE_DIR}
 

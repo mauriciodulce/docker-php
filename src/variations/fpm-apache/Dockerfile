@@ -36,7 +36,8 @@ LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
     org.opencontainers.image.version="${REPOSITORY_BUILD_VERSION}" \
     org.opencontainers.image.licenses="GPL-3.0-or-later"
 
-ENV APACHE_START_SERVERS="2" \
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
+    APACHE_START_SERVERS="2" \
     APACHE_MIN_SPARE_THREADS="10" \
     APACHE_MAX_SPARE_THREADS="75" \
     APACHE_THREAD_LIMIT="64" \
@@ -82,9 +83,6 @@ ENV APACHE_START_SERVERS="2" \
     SSL_CERTIFICATE_FILE=/etc/ssl/private/self-signed-web.crt \
     SSL_PRIVATE_KEY_FILE=/etc/ssl/private/self-signed-web.key
 
-# Use second ENV layer for variable substitution
-ENV APACHE_DOCUMENT_ROOT=${APP_BASE_DIR}/public
-
 # copy our scripts
 COPY --chmod=755 src/common/ /
 COPY --chmod=755 src/s6/ /
@@ -99,6 +97,10 @@ COPY --from=s6-build /usr/local/bin/php-fpm-healthcheck /usr/local/bin/php-fpm-h
 RUN docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     docker-php-serversideup-install-php-ext-installer && \
     docker-php-serversideup-s6-init && \
+    \
+    # Ensure /var/www/ has the correct permissions
+    chown -R www-data:www-data /var/www && \
+    chmod -R 755 /var/www && \
     \
     # Make composer cache directory
     mkdir -p "${COMPOSER_HOME}" && \
@@ -136,7 +138,11 @@ COPY --chmod=755 src/php-fpm.d/ /
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-EXPOSE 80 443
+RUN docker-php-serversideup-set-file-permissions --owner www-data:www-data --service apache
+
+USER www-data
+
+EXPOSE 8080 8443
 
 WORKDIR ${APP_BASE_DIR}
 

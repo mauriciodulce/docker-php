@@ -28,14 +28,12 @@ RUN set -ex && \
     LD_OPT="$(DEB_BUILD_MAINT_OPTIONS="hardening=+all,-pie" DEB_LDFLAGS_MAINT_APPEND="-Wl,--as-needed -pie" dpkg-buildflags --get LDFLAGS)" && \
     CONFIGURE_ARGS_MODULES="--prefix=/usr \
                 --statedir=/var/lib/unit \
-                --control=unix:/var/run/control.unit.sock \
+                --control=unix:/var/run/unit/control.unit.sock \
                 --runstatedir=/var/run \
-                --pid=/var/run/unit.pid \
+                --pid=/var/run/unit/unit.pid \
                 --logdir=/var/log \
                 --log=/dev/stdout \
                 --tmpdir=/var/tmp \
-                --user=www-data \
-                --group=www-data \
                 --openssl \
                 --libdir=/usr/lib/$DEB_HOST_MULTIARCH" && \
     CONFIGURE_ARGS="$CONFIGURE_ARGS_MODULES --njs" && \
@@ -106,10 +104,8 @@ ENV APP_BASE_DIR=/var/www/html \
     SSL_MODE=off \
     UNIT_CERTIFICATE_NAME=self-signed-web \
     UNIT_CONFIG_DIRECTORY=/etc/unit/config.d \
-    UNIT_CONFIG_FILE=/etc/unit/config.d/config.json
-
-# Use second ENV layer for variable substitutions
-ENV UNIT_WEBROOT=${APP_BASE_DIR}/public
+    UNIT_CONFIG_FILE=/etc/unit/config.d/config.json \
+    UNIT_WEBROOT=/var/www/html/public
 
 # Copy NGINX Unit binaries and modules from build stage
 COPY --from=build /usr/sbin/unitd /usr/sbin/
@@ -131,9 +127,16 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" &
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     docker-php-serversideup-install-php-ext-installer && \
     \
+    # Ensure /var/www/ has the correct permissions
+    chown -R www-data:www-data /var/www && \
+    chmod -R 755 /var/www && \
+    \
     # Make composer cache directory
     mkdir -p "${COMPOSER_HOME}" && \
     chown -R www-data:www-data "${COMPOSER_HOME}" && \
+    \
+    # Create run directory for unit
+    mkdir -p /var/run/unit && \
     \
     # Install default PHP extensions
     install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}"
@@ -145,5 +148,11 @@ ENTRYPOINT ["docker-php-serversideup-entrypoint"]
 STOPSIGNAL SIGTERM
 
 WORKDIR ${APP_BASE_DIR}
+
+RUN docker-php-serversideup-set-file-permissions --owner www-data:www-data --service unit
+
+USER www-data
+
+EXPOSE 8080 8443
 
 CMD ["unitd", "--no-daemon"]
