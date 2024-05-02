@@ -105,6 +105,9 @@ ENV APP_BASE_DIR=/var/www/html \
     UNIT_CERTIFICATE_NAME=self-signed-web \
     UNIT_CONFIG_DIRECTORY=/etc/unit/config.d \
     UNIT_CONFIG_FILE=/etc/unit/config.d/config.json \
+    UNIT_PROCESSES_IDLE_TIMEOUT=30 \
+    UNIT_PROCESSES_MAX=20 \
+    UNIT_PROCESSES_SPARE=2 \
     UNIT_WEBROOT=/var/www/html/public
 
 # Copy NGINX Unit binaries and modules from build stage
@@ -127,6 +130,9 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" &
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     docker-php-serversideup-install-php-ext-installer && \
     \
+    # Ensure default web root exists
+    mkdir -p /var/www/html/public && \
+    \
     # Ensure /var/www/ has the correct permissions
     chown -R www-data:www-data /var/www && \
     chmod -R 755 /var/www && \
@@ -136,7 +142,7 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" &
     chown -R www-data:www-data "${COMPOSER_HOME}" && \
     \
     # Create run directory for unit
-    mkdir -p /var/run/unit && \
+    mkdir -p /var/run/unit /var/log/unit && \
     \
     # Install default PHP extensions
     install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}"
