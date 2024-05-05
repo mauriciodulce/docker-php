@@ -1,10 +1,7 @@
 #!/bin/sh
-if [ "$LOG_OUTPUT_LEVEL" != "off" ] && [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
+if [ "$SHOW_WELCOME_MESSAGE" = "true" ] && [ "$LOG_OUTPUT_LEVEL" != "off" ] && [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
 echo '
---------------------------------------------------------------------
 
-
---------------------------------------------------------------------'
 
 PHP_OPCACHE_STATUS=$(php -r 'echo ini_get("opcache.enable");')
 
@@ -15,6 +12,9 @@ else
 fi
 
 echo '
+🙌 To support Server Side Up projects visit:
+https://serversideup.net/sponsor
+
 -------------------------------------
 ℹ️ Container Information
 -------------------------------------'

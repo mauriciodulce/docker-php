@@ -43,9 +43,16 @@
                     "pass": "applications/php"
                 }
             }
+        },
+        {
+            "match": {
+                "uri": "/*"
+            },
+            "action": {
+                "share": "${UNIT_WEBROOT}/static$uri_$query.html"
+            }
         }
     ],
-
     "applications": {
         "php": {
             "type": "php",
