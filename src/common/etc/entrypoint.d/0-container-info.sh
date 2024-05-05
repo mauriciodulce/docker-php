@@ -1,8 +1,11 @@
 #!/bin/sh
 if [ "$SHOW_WELCOME_MESSAGE" = "true" ] && [ "$LOG_OUTPUT_LEVEL" != "off" ] && [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
 echo '
+--------------------------------------------------------------------
+🚀 Welcome to the Server  Docker container!
+--------------------------------------------------------------------'
 
-PHP_OPCACHE_STATUS=$(php -r "echo ini_get('opcache.enable');")
+PHP_OPCACHE_STATUS=$(php -r 'echo ini_get("opcache.enable");')
 
 if [ "$PHP_OPCACHE_STATUS" = "1" ]; then
     PHP_OPCACHE_MESSAGE="✅ Enabled"
@@ -11,9 +14,7 @@ else
 fi
 
 echo '
-🙌 To support Server Side Up projects visit:
-https://serversideup.net/sponsor
-
+🙌 
 -------------------------------------
 ℹ️ Container Information
 -------------------------------------'
